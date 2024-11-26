@@ -1,52 +1,65 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Dimensions, ScrollView } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Carousel from 'react-native-reanimated-carousel';
 
 const HomeScreen = ({ navigation }) => {
+  const [categories, setCategories] = useState([]);
+  const [stores, setStores] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const categoriesResponse = await fetch('http://192.168.100.121:4000/get/categories', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          }
+        });
+        const data = await categoriesResponse.json();
+        setCategories(data);
+
+        const storesResponse = await fetch('http://192.168.100.121:4000/get/stores', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          }
+        });
+        const storesData = await storesResponse.json();
+        setStores(storesData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+    fetchData();
+  }, []);
+
   const carouselItems = [
-    { title: 'Item 1', imageUrl: '../../../assets/images/ad-banners/banner1.jpeg' },
-    { title: 'Item 2', imageUrl: '../../../assets/images/ad-banners/banner2.jpeg' },
-    { title: 'Item 3', imageUrl: '../../../assets/images/ad-banners/banner3.jpeg' },
-  ];
-
-  const categories = [
-    { name: 'Groceries', imageUrl: '../../../assets/images/categories/groceries.jpeg' },
-    { name: 'Vegetables', imageUrl: '../../../assets/images/categories/vegetables.jpeg' },
-    { name: 'Fruits', imageUrl: '../../../assets/images/categories/fruits.jpeg' },
-    { name: 'Dairy', imageUrl: '../../../assets/images/categories/dairy.jpeg' },
-    { name: 'Electronics', imageUrl: '../../../assets/images/categories/electronics.jpeg' },
-    { name: 'Detergents', imageUrl: '../../../assets/images/categories/detergents.jpeg' },
-    { name: 'Beverages', imageUrl: '../../../assets/images/categories/beverages.jpeg' },
-  ];
-
-  const stores = [
-    { name: 'Saravana Stores', imageUrl: '../../../assets/images/stores/saravana.jpeg' },
-    { name: 'D mart', imageUrl: '../../../assets/images/stores/dmart.jpeg' },
-    { name: 'RMKV', imageUrl: '../../../assets/images/stores/rmkv.png' },
-    { name: 'Aachi Masala', imageUrl: '../../../assets/images/stores/aachi.png' },
+    { title: 'Item 1', imageUrl: 'http://192.168.100.121:8081/assets/images/ad-banners/banner1.jpeg' },
+    { title: 'Item 2', imageUrl: 'http://192.168.100.121:8081/assets/images/ad-banners/banner2.jpeg' },
+    { title: 'Item 3', imageUrl: 'http://192.168.100.121:8081/assets/images/ad-banners/banner3.jpeg' },
   ];
 
   const featuredProducts = [
-    { name: 'Toor Dal', imageUrl: '../../../assets/images/products/toor.jpeg', price: '₹100', discount: '10% off' },
-    { name: 'Coconut Oil', imageUrl: '../../../assets/images/products/oil.jpeg', price: '₹200', discount: '5% off' },
-    { name: 'Dove Body wash', imageUrl: '../../../assets/images/products/dove.jpeg', price: '₹150', discount: '15% off' },
-    { name: 'Shampoo 1L', imageUrl: '../../../assets/images/products/shampoo.jpeg', price: '₹250', discount: '20% off' },
-    { name: 'Country Tomatoes', imageUrl: '../../../assets/images/products/tomato.jpeg', price: '₹50', discount: '5% off' },
+    { name: 'Toor Dal', imageUrl: 'http://192.168.100.121:8081/assets/images/products/toor.jpeg', price: '₹100', discount: '10% off' },
+    { name: 'Coconut Oil', imageUrl: 'http://192.168.100.121:8081/assets/images/products/oil.jpeg', price: '₹200', discount: '5% off' },
+    { name: 'Dove Body wash', imageUrl: 'http://192.168.100.121:8081/assets/images/products/dove.jpeg', price: '₹150', discount: '15% off' },
+    { name: 'Shampoo 1L', imageUrl: 'http://192.168.100.121:8081/assets/images/products/shampoo.jpeg', price: '₹250', discount: '20% off' },
+    { name: 'Country Tomatoes', imageUrl: 'http://192.168.100.121:8081/assets/images/products/tomato.jpeg', price: '₹50', discount: '5% off' },
   ];
 
   const renderCategoryItem = ({ item }) => (
-    <View style={styles.categoryItem}>
-      <Image source={{ uri: item.imageUrl }} style={styles.categoryImage} />
+    <TouchableOpacity style={styles.categoryItem} onPress={() => navigation.navigate('Category', { item })}>
+      <Image source={{ uri: item.image_url }} style={styles.categoryImage} />
       <Text style={styles.categoryText}>{item.name}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderStoreItem = ({ item }) => (
     <View style={styles.storeItem}>
-      <Image source={item.imageUrl} style={styles.storeImage} />
+      <Image source={item.image_url} style={styles.storeImage} />
       <Text style={styles.storeText}>{item.name}</Text>
     </View>
   );
@@ -64,110 +77,109 @@ const HomeScreen = ({ navigation }) => {
   
 
   return (
-    <View style={styles.container}>
-      {/* Top Bar */}
-      <View style={styles.topBar}>
-        <Image source={require('../../assets/images/yummymart.png')} style={styles.logo} />
-        <View style={styles.topBarIcons}>
-          <TouchableOpacity>
-            <AntDesign name="search1" size={24} color="black" style={styles.icon} />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons name="notifications-outline" size={24} color="black" style={styles.icon} />
-          </TouchableOpacity>
+    <ScrollView contentContainerStyle={styles.scrollContainer} style={{ flex: 1, overflow: 'scroll' }}>
+      <View style={styles.container}>
+        {/* Top Bar */}
+        <View style={styles.topBar}>
+          <Image source={require('../../assets/images/yummymart.png')} style={styles.logo} />
+          <View style={styles.topBarIcons}>
+            <TouchableOpacity>
+              <AntDesign name="search1" size={24} color="black" style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Ionicons name="notifications-outline" size={24} color="black" style={styles.icon} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      {/* Main Component */}
-      <View style={styles.mainComponent}>
-        <View>
-          <Carousel
-                loop
-                width={width}
-                height={width / 2}
-                autoPlay={true}
-                data={[...new Array(carouselItems.length).keys()]}
-                scrollAnimationDuration={1000}
-                // onSnapToItem={(index) => console.log('current index:', index)}
-                renderItem={({ index }) => (
-                  <View
-                      style={{
-                          flex: 1,
-                          justifyContent: 'center',
-                      }}
-                  >
-                      <Image source={carouselItems[index].imageUrl} style={styles.carouselImage} />
-                      <Text style={styles.carouselText}>{carouselItems[index].title}</Text>
-                  </View>
+        {/* Main Component */}
+        <View style={styles.mainComponent}>
+          <View>
+            <Carousel
+              loop
+              width={width}
+              height={width / 2}
+              autoPlay={true}
+              data={[...new Array(carouselItems.length).keys()]}
+              scrollAnimationDuration={1000}
+              renderItem={({ index }) => (
+                <View style={{ flex: 1, justifyContent: 'center' }}>
+                  <Image source={carouselItems[index].imageUrl} style={styles.carouselImage} />
+                  <Text style={styles.carouselText}>{carouselItems[index].title}</Text>
+                </View>
               )}
             />
+          </View>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Shop by categories</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewAll} onPress={()=> {
+                navigation.navigate('Categories');
+              }}>View all</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={categories.slice(0, 4)}
+            renderItem={renderCategoryItem}
+            keyExtractor={(item) => item.name}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          />
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Shop by stores</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewAll}>View all</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={stores.slice(0, 4)}
+            renderItem={renderStoreItem}
+            keyExtractor={(item) => item.name}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          />
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Featured products</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewAll}>View all</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={featuredProducts}
+            renderItem={renderProductItem}
+            keyExtractor={(item) => item.name}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          />
         </View>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Shop by categories</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAll}>View all</Text>
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          data={categories}
-          renderItem={renderCategoryItem}
-          keyExtractor={(item) => item.name}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Shop by stores</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAll}>View all</Text>
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          data={stores}
-          renderItem={renderStoreItem}
-          keyExtractor={(item) => item.name}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured products</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAll}>View all</Text>
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          data={featuredProducts}
-          renderItem={renderProductItem}
-          keyExtractor={(item) => item.name}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
-      </View>
 
-      {/* Bottom Bar */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <AntDesign name="home" size={24} color="black" style={styles.bottomIcon} />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text style={styles.bottomText}>
-            <Text style={styles.bottomTextYummy}>Yummy</Text>
-            <Text style={styles.bottomTextGo}>Go</Text>
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
+        {/* Bottom Bar */}
+        <View style={styles.bottomBar}>
+          <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+            <AntDesign name="home" size={24} color="black" style={styles.bottomIcon} />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Text style={styles.bottomText}>
+              <Text style={styles.bottomTextYummy}>Yummy</Text>
+              <Text style={styles.bottomTextGo}>Go</Text>
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity>
             <AntDesign name="shoppingcart" size={24} color="black" style={styles.bottomIcon} />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <MaterialIcons name="account-circle" size={24} color="black" style={styles.bottomIcon} onPress={() => {
-            navigation.navigate('Profile');
-          }} />
-        </TouchableOpacity>
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <MaterialIcons name="account-circle" size={24} color="black" style={styles.bottomIcon} onPress={() => {
+              navigation.navigate('Profile');
+            }} />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContainer: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#ffffff' },
   topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#f8f8f8' },
   logo: { width: 50, height: 50 },
